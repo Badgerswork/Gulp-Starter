@@ -65,7 +65,7 @@
 		]))
 		.pipe(argv.debug ? plugins.debug({ title: 'BuildScripts :: ORDER' }) : gutil.noop())
 		.pipe(argv.dist ? gutil.noop() : plugins.sourcemaps.init())
-	    .pipe(plugins.concat("main-overrides.js"))
+	    .pipe(plugins.concat("main.js"))
 		.pipe(argv.dist ? gutil.noop() : plugins.sourcemaps.write())
 		.pipe(gulp.dest(path.to.js.dist))
 		.pipe(argv.debug ? plugins.debug({ title: 'BuildScripts :: OUTPUT' }) : gutil.noop())
