@@ -22,7 +22,7 @@ gulp.task('watch', ['default', 'browser-sync'], function () {
 });
 
 //	LINTER RUNS FIRST AS DEPENDENCY TO KEEP CODE QUALITY UP
-gulp.task('linter', ['css-lint'], function () {
+gulp.task('sassLint', ['css-lint'], function () {
 	gulp.start('sass');
 });
 
@@ -31,11 +31,12 @@ gulp.task('linter', ['css-lint'], function () {
 gulp.task('concatScripts', ['jsVendor', 'jsScripts', 'jsPartials'], function () {
 	gulp.start('buildScripts');
 });
+
 gulp.task('scripts', ['cleaner'], function () {
 	gulp.start('concatScripts');
 });
 
 function watchFiles() {
-	gulp.watch(path.to.sass.files, ['linter',  browserSync.reload]);
+	gulp.watch(path.to.sass.files, ['sassLint',  browserSync.reload]);
 	gulp.watch([path.to.js.partials, path.to.js.scripts, path.to.js.vendor], ['scripts', browserSync.reload]);
 }
