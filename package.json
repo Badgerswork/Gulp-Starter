@@ -12,15 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Badgerswork/bw-site.git"
+    "url": "git+https://github.com/Badgerswork/Gulp-Starter.git"
   },
   "keywords": [],
   "author": "Simon Thomas",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Badgerswork/bw-site/issues"
+    "url": "https://github.com/Badgerswork/Gulp-Starter/issues"
   },
-  "homepage": "https://github.com/Badgerswork/bw-site#readme",
+  "homepage": "https://github.com/Badgerswork/Gulp-Starter#readme",
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
