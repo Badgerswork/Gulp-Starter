@@ -55,7 +55,7 @@
     "gulp-watch": "^5.0.1",
     "imagemin-pngquant": "^8.0.0",
     "merge-stream": "^2.0.0",
-    "node-sass": "^4.13.0",
+    "node-sass": "^7.0.0",
     "postcss-reporter": "^6.0.1",
     "postcss-scss": "^2.1.1",
     "stylelint": "^13.5.0",
