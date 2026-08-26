@@ -13,6 +13,7 @@
     "build": "gulp build --dev",
     "build-prod": "gulp dist",
     "release": "gulp dist",
+    "test": "node --test \"test/**/*.test.js\"",
     "lint": "stylelint \"src/**/*.scss\" --allow-empty-input",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
