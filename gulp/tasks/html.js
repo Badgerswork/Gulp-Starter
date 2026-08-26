@@ -1,5 +1,7 @@
-// === FONTS
+// === HTML
 // ============================================================================
+// Previously nothing copied HTML into dist -- the critical-path task happened
+// to write it as a side effect of inlining, so dev builds served nothing.
 
 import gulp from 'gulp';
 import { srcOrEmpty } from '../settings/stream.js';
@@ -11,10 +13,9 @@ import path from '../settings/paths.js';
 import { handleError } from '../settings/errors.js';
 import { debug } from '../settings/env.js';
 
-export function fonts() {
-    return srcOrEmpty(path.to.fonts.files, { encoding: false })
+export function html() {
+    return srcOrEmpty(path.to.html.files)
         .pipe(plumber({ errorHandler: handleError }))
-        .pipe(debug ? gulpDebug({ title: 'FONTS :: SRC' }) : noop())
-        .pipe(gulp.dest(path.to.dist.fonts))
-        .pipe(debug ? gulpDebug({ title: 'FONTS :: OUTPUT' }) : noop());
+        .pipe(debug ? gulpDebug({ title: 'HTML :: SRC' }) : noop())
+        .pipe(gulp.dest(path.to.dist.root));
 }

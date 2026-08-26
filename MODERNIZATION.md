@@ -229,6 +229,34 @@ of `critical`/`imagemin` depend on it.
 **Exit test:** `gulp build` and `gulp watch` both run; editing a `.scss` file
 visibly injects in the browser.
 
+> **Executed 2026-08-26.** Exit test met: `[Browsersync] 2 files changed
+> (main.css, main.css.map)` on a live `.scss` edit — a line that could not
+> appear before, since the stream targeted an uninitialised instance.
+>
+> Three things this phase surfaced that the plan did not anticipate:
+>
+> 1. **Gulp 5 throws ENOENT on a missing source directory** where Gulp 4
+>    yielded an empty stream. A starter is routinely missing some of
+>    `styles/ js/ images/ fonts/`, so every task needed guarding — added as
+>    `gulp/settings/stream.js` (`srcOrEmpty`). Without it `gulp build` fails
+>    on a fresh clone, which would have blocked Phase 5's exit test.
+> 2. **`critical@1` is not merely old, it is non-functional.** It bundles
+>    puppeteer 1.13, whose 2019 Chromium cannot load `libXss.so.1` on any
+>    current Linux. This was always broken; it stayed hidden only because the
+>    repo had no HTML for the task to process. Critical-path inlining is a
+>    production optimisation and has been removed from the dev/watch path
+>    (it booted a headless browser on every stylesheet save). `gulp dist`
+>    still depends on it, so **Phase 4's `critical@8` upgrade is now a
+>    blocker for production builds**, not a nicety.
+> 3. **Nothing ever copied HTML into `dist`.** The critical task wrote it as a
+>    side effect of inlining, so removing that from dev left the server with
+>    nothing to serve. Added `gulp/tasks/html.js`.
+>
+> Also: `yargs` was dropped rather than upgraded — `yargs/helpers` only exists
+> in v16+, and two boolean flags do not need an argument parser. Files keep
+> their `.js` extensions rather than moving to `.mjs`; `"type": "module"`
+> makes them ESM already, and Phase 4 renames these files anyway.
+
 ### Phase 3 — Drop the legacy layer *(half a day)*
 - Delete Modernizr, gulp-bless, vendor-js, gulp-watch, gulp-duration, beepbeep,
   gulp-notify tasks and deps.

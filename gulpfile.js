@@ -1,112 +1,87 @@
-﻿const gulp = require('gulp'),
-    plugins = require('gulp-load-plugins')({
-        pattern: ['gulp-*', 'gulp.*'],
-    }),
-    path = require('./gulp/settings/paths'),
-    browsersync = require('browser-sync').create();
+// === GULPFILE
+// ============================================================================
 
-////*******************//
-////	REQUIRE FILES
-////*******************//
-const { sass } = require('./gulp/tasks/sass')
-const { cleanCss, cleanJs, cleanDist } = require('./gulp/tasks/clean');
-const { fonts } = require('./gulp/tasks/fonts');
-const { imageToDist, minifyImages } = require('./gulp/tasks/images');
-// const { cssLint } = require('./gulp/tasks/lint');
-const { modernizr } = require('./gulp/tasks/modernizr');
-const { concatJs } = require('./gulp/tasks/concat-js');
-const { criticalPath } = require('./gulp/tasks/critical');
-const { copyServerFiles } = require('./gulp/tasks/copy-server-files')
+import gulp from 'gulp';
 
-////*******************//
-////	TASKS
-////*******************//
+import path from './gulp/settings/paths.js';
+import { browserSync, reload } from './gulp/settings/browsersync.js';
 
-const taskSeries = {
+import { sass } from './gulp/tasks/sass.js';
+import { cleanCss, cleanJs, cleanDist } from './gulp/tasks/clean.js';
+import { fonts } from './gulp/tasks/fonts.js';
+import { imageToDist, minifyImages } from './gulp/tasks/images.js';
+import { modernizr } from './gulp/tasks/modernizr.js';
+import { concatJs } from './gulp/tasks/concat-js.js';
+import { criticalPath } from './gulp/tasks/critical.js';
+import { copyServerFiles } from './gulp/tasks/copy-server-files.js';
+import { html } from './gulp/tasks/html.js';
 
-    browserSync(done) {
-        browsersync.init({
-            // proxy: {
-            //     target: 'http://my-site.local' //// Uncomment proxy settings if you have your site running on a specific local url 
-            // },
-          server: {
-            baseDir: "./dist/"
-          },
-          port: 3000, //// SET WHICH PORT NUMBER YOU PREFER TO SERVE UPON
-          open: true,
-            injectChanges: true,
-            watchEvents: ['add', 'change']
-        });
-        done();
-    },
-      
-      // BrowserSync Reload
-    browserSyncReload(done) {
-        browsersync.reload();
-        done();
-    },
+// ---------------------------------------------------------------------------
+// SERVER
+// ---------------------------------------------------------------------------
 
-    runStyles(done) {
-        return gulp.series(cleanCss, sass, criticalPath, browserSyncReload, (seriesDone) => {
-            seriesDone();
-            done();
-        })();
-    },
-
-    styles(done) {
-        return gulp.series(sass, criticalPath, browserSyncReload, (seriesDone) => {
-            seriesDone();
-            done();
-        })();
-    },
-
-    runScripts(done) {
-        return gulp.series(cleanJs, gulp.parallel(modernizr), concatJs, browserSyncReload, (seriesDone) => {
-            seriesDone();
-            done();
-        })();
-    },
-
-    images(done) {
-        return gulp.series(imageToDist, minifyImages, (seriesDone) => {
-            seriesDone();
-            done();
-        })();
-    },
-
-    serverfiles(done) {
-        return gulp.series(copyServerFiles, (seriesDone) => {
-            seriesDone();
-            done();
-        })();
-    },
-
-    cleanDistFiles(done) {
-        return gulp.series(cleanDist, (seriesDone) => {
-            seriesDone();
-            done();
-        })();
-    },
-
-    watchFiles() {
-        gulp.watch("./styles/**/**.*", styles);
-        gulp.watch("./images/**/**.*", images);
-        gulp.watch("./fonts/**/**.*", fonts);
-        gulp.watch("./js/**/**.*", runScripts);
-        gulp.watch("./**.html", gulp.series(criticalPath, browserSyncReload));
-    },
+function serve(done) {
+    browserSync.init({
+        // proxy: { target: 'http://my-site.local' },
+        server: { baseDir: path.to.dist.root },
+        port: 3000,
+        open: true,
+        injectChanges: true,
+        watchEvents: ['add', 'change'],
+    });
+    done();
 }
 
-const { runStyles, styles, runScripts, images, watchFiles, browserSync, browserSyncReload, serverfiles, cleanDistFiles} = taskSeries;
+// ---------------------------------------------------------------------------
+// COMPOSITE TASKS
+// ---------------------------------------------------------------------------
+// gulp.series/parallel already return task functions. The previous versions
+// wrapped each one in an extra `done` callback and invoked it immediately,
+// which defeated gulp's own task tracking.
 
-exports.default = gulp.parallel(runStyles, runScripts, fonts, images);
-exports.dist = gulp.series(cleanDistFiles, gulp.parallel(runStyles, runScripts, images, fonts, serverfiles), criticalPath);
-exports.build = exports.default;
-exports.styles = styles;
-exports.scripts = runScripts;
-exports.criticalPath = criticalPath;
-exports.watch = gulp.parallel(watchFiles, browserSync);
-exports.serverfiles = serverfiles;
-exports.cleanCss = cleanCss;
-exports.cleanJs = cleanJs;
-exports.cleanDist = cleanDist;
+// Critical-path inlining is a production optimisation: it boots a headless
+// browser per page, so running it on every stylesheet save made watch slow and
+// coupled dev builds to a browser binary. It belongs in `dist` only.
+const styles = gulp.series(sass, reload);
+const buildStyles = gulp.series(cleanCss, styles);
+
+const scripts = gulp.series(cleanJs, modernizr, concatJs, reload);
+
+const images = gulp.series(imageToDist, minifyImages);
+
+function watchFiles() {
+    gulp.watch(path.to.sass.files, styles);
+    gulp.watch(path.to.img.files, images);
+    gulp.watch(path.to.fonts.files, fonts);
+    gulp.watch(path.to.js.files, scripts);
+    gulp.watch(path.to.html.files, gulp.series(html, reload));
+}
+
+// ---------------------------------------------------------------------------
+// EXPORTS
+// ---------------------------------------------------------------------------
+
+export const build = gulp.parallel(buildStyles, scripts, fonts, images, html);
+
+export const dist = gulp.series(
+    cleanDist,
+    gulp.parallel(buildStyles, scripts, images, fonts, html, copyServerFiles),
+    criticalPath
+);
+
+export const watch = gulp.series(build, gulp.parallel(watchFiles, serve));
+
+export {
+    styles,
+    html,
+    scripts,
+    images,
+    fonts,
+    criticalPath,
+    copyServerFiles as serverfiles,
+    cleanCss,
+    cleanJs,
+    cleanDist,
+};
+
+export default build;

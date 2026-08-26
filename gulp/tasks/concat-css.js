@@ -1,44 +1,26 @@
-﻿const gulp = require('gulp'),
-    plugins = require('gulp-load-plugins')({
-        pattern: ['gulp-*', 'gulp.*'],
-    }),
-    path = require('../settings/paths'),
-    errors = require('../settings/errors'),
-    argv = require('yargs').argv,
-    noop = require('gulp-noop');
+// === CONCAT PLAIN CSS
+// ============================================================================
+// Not wired into gulpfile.js -- kept for projects that ship hand-written CSS
+// alongside sass.
 
-let dev = argv.dev === true ? true : false; 
-let debug = argv.debug === true ? true : false; 
+import gulp from 'gulp';
+import { srcOrEmpty } from '../settings/stream.js';
+import plumber from 'gulp-plumber';
+import gulpDebug from 'gulp-debug';
+import noop from 'gulp-noop';
+import concat from 'gulp-concat';
+import gulpPostcss from 'gulp-postcss';
+import cssnano from 'cssnano';
 
+import path from '../settings/paths.js';
+import { handleError } from '../settings/errors.js';
+import { dev, debug } from '../settings/env.js';
 
-function concatCss() {
-    const cssnanoTimer = plugins.duration('CSS-Nano time')
-    const concatTimer = plugins.duration('Concatenate Time')
-
-    return gulp
-		.src([path.to.css.files, '!' + path.to.css.source + '/quote-forms.css'])
-		.pipe(argv.debug ? plugins.debug({ title: 'CSS SRC' }) : noop())
-
-		.pipe(
-			plugins.plumber({
-				errorHandler: errors.handleError,
-			})
-		)
-		.pipe(plugins.sourcemaps.init())
-		.once('data', concatTimer.start)
-		.pipe(plugins.concat('main.min.css'))
-		.pipe(concatTimer)
-
-		.once('data', cssnanoTimer.start)
-		.pipe(dev ? noop() : plugins.cssnano()) // MINIFY CSS IF PRODUCTION
-		.pipe(cssnanoTimer)
-
-		.pipe(dev ? plugins.sourcemaps.write() : noop())
-
-		.pipe(gulp.dest(path.to.dist.css))
-
-		.pipe(debug ? plugins.debug({ title: 'CSS SRC ORDER' }) : noop())
-
-		.pipe(plugins.plumber.stop());
+export function concatCss() {
+    return srcOrEmpty([path.to.css.files], { sourcemaps: dev })
+        .pipe(plumber({ errorHandler: handleError }))
+        .pipe(debug ? gulpDebug({ title: 'CSS :: SRC' }) : noop())
+        .pipe(concat('main.min.css'))
+        .pipe(dev ? noop() : gulpPostcss([cssnano]))
+        .pipe(gulp.dest(path.to.dist.css, { sourcemaps: dev ? '.' : false }));
 }
-exports.concatCss = concatCss;
