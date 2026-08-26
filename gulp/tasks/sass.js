@@ -1,10 +1,11 @@
 ﻿
 const gulp = require('gulp'),
     plugins = require('gulp-load-plugins')({
-        pattern: ['*'],
+        pattern: ['gulp-*', 'gulp.*'],
     }),
     postcss = require('gulp-postcss'),
-    autoprefixer = require('autoprefixer');
+    sassCompiler = require('gulp-sass')(require('sass')),
+    autoprefixer = require('autoprefixer'),
     cssnano = require('cssnano'),
     browserSync = require('browser-sync').create(),
     path = require('../settings/paths'),
@@ -37,14 +38,10 @@ function sass() {
 
         .pipe((debug) ? plugins.debug({ title: 'INIT SRCMAP' }) : noop())
         // .once('data', sassTimer.start)
-        .pipe(plugins.sass({
-            style: setup.dev.sassStyle,
-
-            includePaths: [
-                "./styles/**.**",
-            ],
-            errLogToConsole: true
-        }))
+        .pipe(sassCompiler({
+            style: dev ? setup.dev.sassStyle : setup.prod.sassStyle,
+            loadPaths: [path.to.sass.source],
+        }).on('error', sassCompiler.logError))
        
         // MINIFY CSS IF PRODUCTION
         .pipe(dev ? postcss(processors) : noop())

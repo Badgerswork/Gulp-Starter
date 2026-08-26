@@ -194,10 +194,26 @@ The unblocking step. Nothing else can be tested until this lands.
   `gulpSass(dartSass)`.
 - `gulp@4` → `@5`; `postcss@7` → `@8`.
 - Delete `package-lock.json`, regenerate on npm 10+ (lockfileVersion 3).
-- Add `"engines": { "node": ">=22" }` and `"type": "module"`.
-- Add `.nvmrc`.
+- Add `"engines": { "node": ">=22.11" }` and `.nvmrc`.
 
 **Exit test:** `npm ci` succeeds on Node 22 and 24.
+
+> **Executed 2026-08-26.** Two corrections to this phase as originally written:
+>
+> 1. `"type": "module"` moved to Phase 2. Setting it here would make Gulp 5 load
+>    the still-CommonJS `gulpfile.js` as ESM and fail on `require` — install
+>    would pass while the build broke. It belongs with the ESM conversion.
+> 2. The `gulp-load-plugins` change moved *into* this phase. Declaring
+>    `postcss` and `autoprefixer` correctly (bug #3) collides with
+>    `pattern: ['*']`, which namespaces all of `node_modules` and throws
+>    `Could not define the property "postcss"`. Restoring the default
+>    `['gulp-*', 'gulp.*']` pattern was the minimum fix; the full move to
+>    explicit imports stays in Phase 2.
+>
+> Also found: `gulp-autoprefixer` was never referenced by any task and was
+> removed. `gulp-sass@6` calls dart-sass's **modern** `compileStringAsync` API,
+> so the options are `style` and `loadPaths` — not node-sass's `outputStyle`
+> and `includePaths`.
 
 ### Phase 2 — ESM + bug fixes *(one day)*
 Do these together: the strict-mode switch surfaces bug #6, and the ESM upgrades

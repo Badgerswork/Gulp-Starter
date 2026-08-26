@@ -1,7 +1,7 @@
 
 const gulp = require('gulp'),
     plugins = require('gulp-load-plugins')({
-        pattern: ['*'],
+        pattern: ['gulp-*', 'gulp.*'],
     }),
     path = require('../settings/paths'),
     errors = require('../settings/errors'),
