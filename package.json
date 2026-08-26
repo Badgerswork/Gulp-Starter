@@ -50,7 +50,7 @@
     "cssnano": "^8.0.9",
     "esbuild": "^0.28.2",
     "gulp": "^5.0.1",
-    "gulp-debug": "^4.0.0",
+    "gulp-debug": "^5.0.1",
     "gulp-noop": "^1.0.0",
     "gulp-plumber": "^1.2.1",
     "gulp-postcss": "^10.0.0",
