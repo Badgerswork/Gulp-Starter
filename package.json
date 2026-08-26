@@ -1,7 +1,7 @@
 {
-  "name": "badgerworks_-_gulp-starter",
+  "name": "gulp-starter",
   "version": "1.0.0",
-  "description": "Badgerworks Gulp 4 Build System",
+  "description": "A modern Gulp build system for static sites: Sass, esbuild, sharp and critical CSS.",
   "private": true,
   "type": "module",
   "engines": {
@@ -13,15 +13,27 @@
     "build": "gulp build --dev",
     "build-prod": "gulp dist",
     "release": "gulp dist",
-    "lint": "stylelint \"styles/**/*.scss\" --allow-empty-input",
+    "lint": "stylelint \"src/**/*.scss\" --allow-empty-input",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "lint:fix": "stylelint \"src/**/*.scss\" --fix"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Badgerswork/Gulp-Starter.git"
   },
-  "keywords": [],
+  "keywords": [
+    "gulp",
+    "build",
+    "sass",
+    "scss",
+    "esbuild",
+    "sharp",
+    "critical-css",
+    "browsersync",
+    "static-site",
+    "starter"
+  ],
   "author": "Simon Thomas",
   "license": "ISC",
   "bugs": {

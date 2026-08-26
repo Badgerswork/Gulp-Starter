@@ -14,7 +14,7 @@ import { handleError } from '../settings/errors.js';
 import { debug } from '../settings/env.js';
 
 export function html() {
-    return srcOrEmpty(path.to.html.files)
+    return srcOrEmpty(path.to.html.files, { base: path.to.src.root })
         .pipe(plumber({ errorHandler: handleError }))
         .pipe(debug ? gulpDebug({ title: 'HTML :: SRC' }) : noop())
         .pipe(gulp.dest(path.to.dist.root));

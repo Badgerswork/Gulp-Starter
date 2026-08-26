@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      # `npm ci` is the check that matters most here: this repo was
+      # uninstallable for years because node-sass had no binary for current
+      # Node, and nothing caught it.
+      - name: Install
+        run: npm ci
+
+      - name: Lint styles
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Development build
+        run: npm run build
+
+      - name: Production build
+        run: npm run build-prod
+
+      - name: Verify build output
+        run: |
+          test -f dist/index.html
+          test -f dist/css/main.css
+          test -f dist/js/main.js
+          grep -q '<style>' dist/index.html
+          echo "Build output verified."

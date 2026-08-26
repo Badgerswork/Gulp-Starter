@@ -357,6 +357,33 @@ script and something someone adopts.
 
 **Exit test:** a clean clone builds and serves a page in under two minutes.
 
+> **Executed 2026-08-26.** Exit test met with room to spare: from a tracked-files-
+> only copy, `npm ci` took 7s and `npm start` was serving in 3s.
+>
+> Sources moved to `src/`, as the target architecture specified. `paths.js` now
+> reads from `src/` and writes to `dist/`, and the dead `templates`, `includes`,
+> `svg`, `css` and `nodeModules` path entries are gone. The HTML globstar is
+> cheap again now that it is scoped to `src/`.
+>
+> Verified from a clean clone: `npm ci`, `lint`, `format:check`, `build` and
+> `build-prod` all exit 0; `/`, `/css/main.css`, `/js/main.js` and
+> `/images/sample.webp` all return 200; a token edit recompiles and reports
+> `[Browsersync] 2 files changed`.
+>
+> The starter sources are deliberately not placeholders -- they exercise every
+> pipeline: a sass partial reached via `@use`, an ES module reached via
+> `import`, and a real PNG that produces WebP and AVIF siblings.
+>
+> One correction: the starter's own stylesheet failed `npm run lint` on first
+> write (`scss/dollar-variable-empty-line-before`). Fixed. A starter that does
+> not pass its own lint step is worse than no lint step.
+>
+> CI runs the whole chain on Node 22 and 24, including asserting that critical
+> CSS actually inlined -- `npm ci` is the check that matters most, since this
+> repo sat uninstallable for years with nothing to catch it. Dependabot is
+> grouped by ecosystem so it opens one PR per group rather than one per package.
+> `LICENSE` (ISC) added; package renamed to `gulp-starter`.
+
 ---
 
 ## 5. Risk and effort

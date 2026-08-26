@@ -1,0 +1,41 @@
+@use 'reset';
+@use 'tokens';
+
+body {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: tokens.$step;
+  background: tokens.$paper;
+  color: tokens.$ink;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.6;
+}
+
+.card {
+  display: grid;
+  gap: tokens.$step;
+  max-width: tokens.$measure;
+  padding: tokens.$step * 2;
+  border: 1px solid tokens.$rule;
+  border-radius: 4px;
+  background: #fff;
+
+  &__title {
+    color: tokens.$brand;
+    font-size: 2rem;
+    line-height: 1.1;
+  }
+
+  &__status {
+    padding: 0.75rem 1rem;
+    border-radius: 3px;
+    background: rgba(tokens.$brand, 0.08);
+    color: tokens.$brand;
+    font-variant-numeric: tabular-nums;
+  }
+}
