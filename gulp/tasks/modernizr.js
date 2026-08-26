@@ -1,39 +1,31 @@
-﻿const gulp = require('gulp'),
-	plugins = require('gulp-load-plugins')({
-		pattern: ['gulp-*', 'gulp.*'],
-	}),
-	path = require('../settings/paths'),
-	errors = require('../settings/errors'),
-	babel = require('gulp-babel');
-    argv = require('yargs').argv,
-    noop = require('gulp-noop');
+// === MODERNIZR
+// ============================================================================
+// Removed in Phase 3 -- feature detection and the html5shiv are only needed
+// for browsers this starter no longer targets.
 
-let debug = argv.debug === true ? true : false; 
+import gulp from 'gulp';
+import { srcOrEmpty } from '../settings/stream.js';
+import plumber from 'gulp-plumber';
+import gulpDebug from 'gulp-debug';
+import noop from 'gulp-noop';
+import modernizrPlugin from 'gulp-modernizr';
+import babel from 'gulp-babel';
 
-function modernizr() {
-    const ModernizrTimer = plugins.duration('Modernizr time')
-    return gulp.src([path.to.sass.files, path.to.js.files])
-        .pipe(debug ? plugins.debug({ title: 'Modernizr SRC' }) : noop())
-        .pipe(plugins.plumber({
-            errorHandler: errors.handleError
-        }))
-        .once('data', ModernizrTimer.start)
-        .pipe(plugins.modernizr({
-            options: [
-                "setClasses",
-                "addTest",
-                "html5shiv",
-                "testProp"
-            ],
-            excludeTests: ['hidden']
-        }))
-		.pipe(ModernizrTimer)
-		.pipe(babel({
-            presets: ['@babel/env', { "sourceType": "script" }],
-            compact: false
-        }))
-        .pipe(debug ? plugins.debug({ title: 'Modernizr Complete Style' }) : noop())
-        .pipe(gulp.dest(path.to.dist.js))
-        .pipe(plugins.plumber.stop())
+import path from '../settings/paths.js';
+import { handleError } from '../settings/errors.js';
+import { debug } from '../settings/env.js';
+
+export function modernizr() {
+    return srcOrEmpty([path.to.sass.files, path.to.js.files])
+        .pipe(plumber({ errorHandler: handleError }))
+        .pipe(debug ? gulpDebug({ title: 'MODERNIZR :: SRC' }) : noop())
+        .pipe(
+            modernizrPlugin({
+                options: ['setClasses', 'addTest', 'html5shiv', 'testProp'],
+                excludeTests: ['hidden'],
+            })
+        )
+        .pipe(babel({ presets: ['@babel/env'], compact: false }))
+        .pipe(debug ? gulpDebug({ title: 'MODERNIZR :: OUTPUT' }) : noop())
+        .pipe(gulp.dest(path.to.dist.js));
 }
-exports.modernizr = modernizr;

@@ -1,26 +1,21 @@
-const gulp = require('gulp'),
-    plugins = require('gulp-load-plugins')({
-        pattern: ['gulp-*', 'gulp.*'],
-    }),
-    path = require('../settings/paths'),
-    errors = require('../settings/errors'),
-    argv = require('yargs').argv;
+// === SERVER FILES
+// ============================================================================
 
-    let debug = argv.debug === true ? true : false;
+import gulp from 'gulp';
+import plumber from 'gulp-plumber';
+import gulpDebug from 'gulp-debug';
+import noop from 'gulp-noop';
 
-let filesToCopy = [
-    'robots.txt', 
-    'sitemap.xml',
-    '_headers.txt'
-];
+import path from '../settings/paths.js';
+import { handleError } from '../settings/errors.js';
+import { debug } from '../settings/env.js';
 
-function copyServerFiles() {
-    return gulp.src(filesToCopy, { allowEmpty: true })
-    .pipe(plugins.plumber({
-        errorHandler: errors.handleError
-    }))
-    .pipe((debug) ? plugins.debug({ title: 'MOVE SERVER FILES ::: ' }) : noop())
-    .pipe(gulp.dest(path.to.dist.root))
+const filesToCopy = ['robots.txt', 'sitemap.xml', '_headers.txt'];
+
+export function copyServerFiles() {
+    return gulp
+        .src(filesToCopy, { allowEmpty: true, encoding: false })
+        .pipe(plumber({ errorHandler: handleError }))
+        .pipe(debug ? gulpDebug({ title: 'MOVE SERVER FILES ::: ' }) : noop())
+        .pipe(gulp.dest(path.to.dist.root));
 }
-
-exports.copyServerFiles = copyServerFiles;

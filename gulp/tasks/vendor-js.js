@@ -1,31 +1,32 @@
-﻿const gulp = require('gulp'),
-	plugins = require('gulp-load-plugins')({
-		pattern: ['gulp-*', 'gulp.*'],
-	}),
-	path = require('../settings/paths'),
-	errors = require('../settings/errors'),
-	argv = require('yargs').argv,
-    noop = require('gulp-noop');
+// === VENDOR SCRIPTS
+// ============================================================================
+// Removed in Phase 4: copying files out of node_modules by hand-written path
+// only exists because the script pipeline has no module system. Real `import`
+// statements replace this once esbuild lands.
 
-let dev = argv.dev === true ? true : false; 
-let debug = argv.debug === true ? true : false; 
+import gulp from 'gulp';
+import plumber from 'gulp-plumber';
+import gulpDebug from 'gulp-debug';
+import noop from 'gulp-noop';
+import concat from 'gulp-concat';
 
-// REQUIRED EXTERNAL FILES FROM NODE MODULES
-const SmoothScroll = "/smoothscroll/smoothscroll.js";
-const WhatInput = "/what-input/dist/what-input.js";
+import path from '../settings/paths.js';
+import { handleError } from '../settings/errors.js';
+import { debug } from '../settings/env.js';
 
-function vendorScripts() {
-	return gulp.src([
-		path.to.nodeModules.root + SmoothScroll,
-		path.to.nodeModules.root + WhatInput
-	])
-	.pipe(debug ? plugins.debug({ title: 'VENDOR SCRIPTS:' }) : noop())
-	.pipe(plugins.plumber({
-		errorHandler: errors.handleError
-	}))
-	.pipe(plugins.concat("vendor.js"))
-	.pipe(debug ? plugins.debug({ title: 'CONCAT VENDOR SCRIPTS:' }) : noop())
-	.pipe(gulp.dest(path.to.js.vendor))
-	.pipe(plugins.plumber.stop())
+const vendorFiles = [
+    '/smoothscroll/smoothscroll.js',
+    '/what-input/dist/what-input.js',
+];
+
+export function vendorScripts() {
+    return gulp
+        .src(
+            vendorFiles.map((file) => path.to.nodeModules.root + file),
+            { allowEmpty: true }
+        )
+        .pipe(plumber({ errorHandler: handleError }))
+        .pipe(debug ? gulpDebug({ title: 'VENDOR :: SRC' }) : noop())
+        .pipe(concat('vendor.js'))
+        .pipe(gulp.dest(path.to.dist.js));
 }
-exports.vendorScripts = vendorScripts;

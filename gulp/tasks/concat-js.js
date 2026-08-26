@@ -1,45 +1,26 @@
-﻿const gulp = require('gulp'),
-    plugins = require('gulp-load-plugins')({
-        pattern: ['gulp-*', 'gulp.*'],
-    }),
-    path = require('../settings/paths'),
-    errors = require('../settings/errors'),
-    babel = require('gulp-babel');
-    argv = require('yargs').argv,
-    noop = require('gulp-noop');
+// === SCRIPTS
+// ============================================================================
+// Replaced by an esbuild bundle in Phase 4; concatenation has no module
+// system, which is why vendor-js.js exists to copy files out of node_modules.
 
-let dev = argv.dev === true ? true : false; 
-let debug = argv.debug === true ? true : false; 
+import gulp from 'gulp';
+import { srcOrEmpty } from '../settings/stream.js';
+import plumber from 'gulp-plumber';
+import gulpDebug from 'gulp-debug';
+import noop from 'gulp-noop';
+import concat from 'gulp-concat';
+import babel from 'gulp-babel';
 
-function concatJs() {
-    const concatTimer = plugins.duration('Concatenate Scripts Time')
-    const babelTimer = plugins.duration('Babel Scripts Time')
+import path from '../settings/paths.js';
+import { handleError } from '../settings/errors.js';
+import { dev, debug } from '../settings/env.js';
 
-	return gulp.src([path.to.js.files
-		// EXCLUDE FILES LIKE THIS
-        // `! ${path.to.js.source}/filename.js,
-    ])
-        .pipe(plugins.plumber({
-            errorHandler: errors.handleError
-        }))
-        .pipe(debug ? plugins.debug({ title: 'Partial-Scripts :: SRC' }) : noop())
-        // .pipe(plugins.order([
-			   ////SPECIFY THE ORDER TO CONCAT THE FILES IN
-        //     "components/*.js",
-        //     "app.js"
-        // ]))
-        .pipe(debug ? plugins.debug({ title: 'Partial-Scripts :: ORDER' }) : noop())
-        .once('data', concatTimer.start)
-        .pipe(plugins.concat("scripts.min.js"))
-        .pipe(concatTimer)
-        .once('data', babelTimer.start)
-        .pipe(babel({
-            presets: ['@babel/env', { "sourceType": "script" }],
-            compact: false
-        }))
-        .pipe(babelTimer)
-        .pipe(gulp.dest(path.to.dist.js))
-        .pipe(plugins.plumber.stop())
-        .pipe(debug ? plugins.debug({ title: 'Partial-Scripts :: OUTPUT' }) : noop())
+export function concatJs() {
+    return srcOrEmpty([path.to.js.files], { sourcemaps: dev })
+        .pipe(plumber({ errorHandler: handleError }))
+        .pipe(debug ? gulpDebug({ title: 'SCRIPTS :: SRC' }) : noop())
+        .pipe(concat('scripts.min.js'))
+        .pipe(babel({ presets: ['@babel/env'], compact: false }))
+        .pipe(debug ? gulpDebug({ title: 'SCRIPTS :: OUTPUT' }) : noop())
+        .pipe(gulp.dest(path.to.dist.js, { sourcemaps: dev ? '.' : false }));
 }
-exports.concatJs = concatJs;

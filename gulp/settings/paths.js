@@ -1,13 +1,12 @@
-﻿// === PATHS
+// === PATHS
 // ============================================================================
 
 const _baseDir = '.';
 const _distDir = './dist';
-const _nodeModules = "./node_modules";
+const _nodeModules = './node_modules';
 
-let path = {
+const path = {
     to: {
-
         allFiles: _baseDir + '/**/**.**',
 
         sass: {
@@ -64,9 +63,9 @@ let path = {
         },
 
         nodeModules: {
-            root: _nodeModules
+            root: _nodeModules,
         },
-    }
+    },
 };
 
-module.exports = path;
+export default path;

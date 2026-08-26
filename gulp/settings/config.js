@@ -1,15 +1,14 @@
-﻿// === CONFIG
+// === CONFIG
 // ============================================================================
 
-
-let env = {
+const env = {
     dev: {
         name: 'dev',
         local: true,
         assetsUrl: '../dist',
         sassStyle: 'expanded',
         sourceComments: 'normal',
-        sourceMap: true
+        sourceMap: true,
     },
 
     prod: {
@@ -18,7 +17,7 @@ let env = {
         assetsUrl: '../dist',
         sassStyle: 'compressed',
         sourceComments: 'none',
-        sourceMap: false
+        sourceMap: false,
     },
 
     test: {
@@ -27,7 +26,8 @@ let env = {
         assetsUrl: '../dist',
         sassStyle: 'compressed',
         sourceComments: 'none',
-        sourceMap: false
+        sourceMap: false,
     },
-}
-module.exports = env;
+};
+
+export default env;
