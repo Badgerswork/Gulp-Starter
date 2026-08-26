@@ -9,8 +9,7 @@ import { browserSync, reload } from './gulp/settings/browsersync.js';
 import { sass } from './gulp/tasks/sass.js';
 import { cleanCss, cleanJs, cleanDist } from './gulp/tasks/clean.js';
 import { fonts } from './gulp/tasks/fonts.js';
-import { imageToDist, minifyImages } from './gulp/tasks/images.js';
-import { modernizr } from './gulp/tasks/modernizr.js';
+import { images } from './gulp/tasks/images.js';
 import { concatJs } from './gulp/tasks/concat-js.js';
 import { criticalPath } from './gulp/tasks/critical.js';
 import { copyServerFiles } from './gulp/tasks/copy-server-files.js';
@@ -43,11 +42,7 @@ function serve(done) {
 // browser per page, so running it on every stylesheet save made watch slow and
 // coupled dev builds to a browser binary. It belongs in `dist` only.
 const styles = gulp.series(sass, reload);
-const buildStyles = gulp.series(cleanCss, styles);
-
-const scripts = gulp.series(cleanJs, modernizr, concatJs, reload);
-
-const images = gulp.series(imageToDist, minifyImages);
+const scripts = gulp.series(concatJs, reload);
 
 function watchFiles() {
     gulp.watch(path.to.sass.files, styles);
@@ -61,11 +56,18 @@ function watchFiles() {
 // EXPORTS
 // ---------------------------------------------------------------------------
 
-export const build = gulp.parallel(buildStyles, scripts, fonts, images, html);
+// Cleaning happens once, in series, before anything writes. Per-pipeline
+// cleans used to run inside the parallel group, so one branch deleted a
+// subdirectory of dist while another was writing to it -- gulp.dest scandirs
+// the destination tree, so that raced and failed the build intermittently.
+export const build = gulp.series(
+    cleanDist,
+    gulp.parallel(styles, scripts, fonts, images, html)
+);
 
 export const dist = gulp.series(
     cleanDist,
-    gulp.parallel(buildStyles, scripts, images, fonts, html, copyServerFiles),
+    gulp.parallel(styles, scripts, images, fonts, html, copyServerFiles),
     criticalPath
 );
 

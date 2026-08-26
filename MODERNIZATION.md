@@ -266,6 +266,36 @@ visibly injects in the browser.
 **Exit test:** build output is byte-comparable minus the Modernizr bundle;
 install time and `node_modules` size both drop measurably.
 
+> **Executed 2026-08-26**, together with the `critical@8` upgrade pulled
+> forward from Phase 4, since `gulp dist` could not complete without it.
+> devDependencies 40 -> 22.
+>
+> `critical@8` works: above-the-fold rules are inlined into `<style>`,
+> below-the-fold rules are not, and the full sheet is deferred with a
+> `<noscript>` fallback. Critical CSS remains in `gulp dist` and as a
+> standalone `gulp criticalPath` task -- only the dev/watch loop dropped it.
+>
+> The browserslist change is measurable: under `defaults, not dead`, Babel
+> now passes arrow functions, template literals, private class fields, `**`
+> and optional chaining through untouched, emitting only `"use strict"`.
+> That is the empirical case for replacing it with esbuild in Phase 4.
+>
+> **An intermittent build failure was found and fixed** (~50% of runs against
+> a populated `dist`): `gulp.dest` scandirs the destination tree, so a clean
+> task deleting `dist/css` inside the parallel group raced against another
+> branch writing to `dist`. Reproducible with stock Gulp 5 and no project
+> code. Cleaning now happens once, in series, before anything writes.
+> 15 consecutive `build` runs and 10 `dist` runs are green.
+>
+> Two further fixes fell out of it: the image pipeline no longer round-trips
+> through `dist` (it copied images in, re-globbed them, and never wrote the
+> optimised result back -- so nothing was ever actually minified), and the
+> HTML glob no longer walks the whole project including `node_modules`.
+>
+> Noted, not fixed: `gulp.src -> gulp.dest` costs a fixed ~500ms per task in
+> Gulp 5 even for a single file, reproducible with no project code. Worth
+> revisiting in Phase 4.
+
 ### Phase 4 — Modern pipeline *(one to two days)*
 - `scripts.mjs` on esbuild; delete `concat-js.js`.
 - `images.mjs` on sharp, emitting WebP/AVIF.

@@ -7,14 +7,12 @@ import gulp from 'gulp';
 import { srcOrEmpty } from '../settings/stream.js';
 import plumber from 'gulp-plumber';
 import noop from 'gulp-noop';
-import criticalLib from 'critical';
+import { stream as critical } from 'critical';
 
 import path from '../settings/paths.js';
 import { handleError } from '../settings/errors.js';
 import { dev } from '../settings/env.js';
 import { browserSync } from '../settings/browsersync.js';
-
-const critical = criticalLib.stream;
 
 export function criticalPath() {
     // Previously hardcoded to 'dist/css/styles.css', which the sass task never
