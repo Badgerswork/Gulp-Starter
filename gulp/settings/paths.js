@@ -30,7 +30,12 @@ const path = {
         },
 
         html: {
-            files: _baseDir + '/**.html',
+            // Root-level only. The old './**.html' traversed the entire
+            // project including node_modules and dist -- roughly a second per
+            // build -- and raced against the clean tasks deleting dist/ out
+            // from under the walk. Phase 5 moves this to 'src/**/*.html',
+            // where a globstar is cheap because the tree is small.
+            files: _baseDir + '/*.html',
         },
 
         templates: {

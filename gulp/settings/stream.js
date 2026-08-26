@@ -9,14 +9,33 @@ import { Readable } from 'node:stream';
 import { globSync } from 'node:fs';
 import gulp from 'gulp';
 
+// Directories a source glob should never descend into. Probing without this
+// walks node_modules, which costs ~250ms per task on every build.
+const alwaysExclude = ['node_modules', '.git'];
+
 export function srcOrEmpty(globs, opts = {}) {
     const patterns = Array.isArray(globs) ? globs : [globs];
-    const included = patterns.filter((pattern) => !pattern.startsWith('!'));
-    const hasMatch = included.some((pattern) => globSync(pattern).length > 0);
+    const negated = patterns.filter((pattern) => pattern.startsWith('!'));
 
-    if (!hasMatch) {
+    // Honour the caller's own negations in the probe as well, or it traverses
+    // directories the real glob was explicitly told to skip.
+    const excluded = [
+        ...alwaysExclude,
+        ...negated.map((pattern) => pattern.replace(/^!\.?\/?/, '').replace(/\/\*\*$/, '')),
+    ].filter(Boolean);
+
+    const exclude = (entry) =>
+        excluded.some((dir) => entry === dir || entry.startsWith(dir + '/'));
+
+    // Filter per pattern, not all-or-nothing: a task sourcing both styles/ and
+    // js/ must still work when only one of them exists.
+    const live = patterns
+        .filter((pattern) => !pattern.startsWith('!'))
+        .filter((pattern) => globSync(pattern, { exclude }).length > 0);
+
+    if (live.length === 0) {
         return Readable.from([], { objectMode: true });
     }
 
-    return gulp.src(globs, opts);
+    return gulp.src([...live, ...negated], opts);
 }
