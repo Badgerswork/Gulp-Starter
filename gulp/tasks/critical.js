@@ -20,7 +20,7 @@ export function criticalPath() {
     // built instead; if nothing matches, let critical discover the stylesheets
     // from the document's own <link> tags.
     const builtCss = globSync(path.to.dist.css + '/**/*.css').filter(
-        (file) => !file.endsWith('.min.css')
+        (file) => !file.endsWith('.min.css'),
     );
 
     return srcOrEmpty(path.to.html.files)
@@ -34,7 +34,7 @@ export function criticalPath() {
                     { height: 200, width: 500 },
                     { height: 900, width: 1200 },
                 ],
-            })
+            }),
         )
         .pipe(gulp.dest(path.to.dist.root))
         .pipe(dev ? browserSync.stream() : noop());

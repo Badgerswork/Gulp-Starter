@@ -1,24 +1,28 @@
 // === SASS LINT
 // ============================================================================
-// The previous inline rule block was ~130 stylistic rules, all deprecated in
-// stylelint 15 and removed in 16 -- it lints nothing against stylelint 17.
-// Phase 4 replaces this with stylelint-config-standard + Prettier.
+// stylelint's own API, not a postcss pipeline. The previous task carried ~130
+// inline stylistic rules, all deprecated in stylelint 15 and removed in 16 --
+// it lints nothing against stylelint 17. Rules now live in .stylelintrc.json;
+// Prettier owns formatting, stylelint owns correctness.
 
-import gulp from 'gulp';
-import { srcOrEmpty } from '../settings/stream.js';
-import gulpPostcss from 'gulp-postcss';
 import stylelint from 'stylelint';
-import reporter from 'postcss-reporter';
-import scssSyntax from 'postcss-scss';
 
 import path from '../settings/paths.js';
+import { dev } from '../settings/env.js';
 
-export function cssLint() {
-    const processors = [
-        stylelint(),
-        reporter({ clearMessages: true, throwError: false }),
-    ];
+export async function cssLint() {
+    const { report, errored } = await stylelint.lint({
+        files: path.to.sass.files,
+        formatter: 'string',
+        allowEmptyInput: true,
+    });
 
-    return srcOrEmpty([path.to.sass.files])
-        .pipe(gulpPostcss(processors, { syntax: scssSyntax }));
+    if (report.trim()) {
+        console.log(report);
+    }
+
+    // Fail a one-off build so CI catches it; keep watch alive during dev.
+    if (errored && !dev) {
+        process.exitCode = 1;
+    }
 }

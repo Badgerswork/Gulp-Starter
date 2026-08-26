@@ -21,7 +21,9 @@ export function srcOrEmpty(globs, opts = {}) {
     // directories the real glob was explicitly told to skip.
     const excluded = [
         ...alwaysExclude,
-        ...negated.map((pattern) => pattern.replace(/^!\.?\/?/, '').replace(/\/\*\*$/, '')),
+        ...negated.map((pattern) =>
+            pattern.replace(/^!\.?\/?/, '').replace(/\/\*\*$/, ''),
+        ),
     ].filter(Boolean);
 
     const exclude = (entry) =>

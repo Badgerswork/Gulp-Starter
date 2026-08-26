@@ -42,16 +42,16 @@ not a single bump.
 `package-lock.json` is `lockfileVersion: 1` — npm 6 era, ~2019. Confirmed
 deprecated or effectively abandoned in the current tree:
 
-| Package | State | Replacement |
-|---|---|---|
-| `node-sass` | **Deprecated** upstream | `sass` (dart-sass) `1.103.x` |
-| `gulp-sass@4` | Old compiler-coupled API | `gulp-sass@6` — inject compiler |
-| `gulp-modernizr` | Serves dead browsers | *delete* |
-| `gulp-bless` | IE9 4095-selector limit | *delete* |
-| `gulp-duration@0.0.0` | Never released past 0.0.0 | `--verbose` timing or drop |
-| `beepbeep`, `gulp-notify` | Desktop-notification noise | plain console output |
-| `postcss@7`, `stylelint@13` | Two majors behind | `postcss@8`, `stylelint@17` |
-| `gulp@4` | Superseded | `gulp@5` |
+| Package                     | State                      | Replacement                     |
+| --------------------------- | -------------------------- | ------------------------------- |
+| `node-sass`                 | **Deprecated** upstream    | `sass` (dart-sass) `1.103.x`    |
+| `gulp-sass@4`               | Old compiler-coupled API   | `gulp-sass@6` — inject compiler |
+| `gulp-modernizr`            | Serves dead browsers       | _delete_                        |
+| `gulp-bless`                | IE9 4095-selector limit    | _delete_                        |
+| `gulp-duration@0.0.0`       | Never released past 0.0.0  | `--verbose` timing or drop      |
+| `beepbeep`, `gulp-notify`   | Desktop-notification noise | plain console output            |
+| `postcss@7`, `stylelint@13` | Two majors behind          | `postcss@8`, `stylelint@17`     |
+| `gulp@4`                    | Superseded                 | `gulp@5`                        |
 
 ### Confirmed bugs in the current code
 
@@ -75,7 +75,7 @@ against the source, not inferred:
    resolves today purely by transitive hoisting — a flat-tree accident that any
    lockfile change can break.
 
-4. **`copy-server-files.js` throws on the normal path.**  Line 22 calls bare
+4. **`copy-server-files.js` throws on the normal path.** Line 22 calls bare
    `noop()`, but the file never requires `gulp-noop`. With `--debug` unset — the
    default — this is a `ReferenceError`.
 
@@ -111,7 +111,7 @@ decision: modern browsers only.
 - **gulp-bless** — worked around IE9's 4095-selector ceiling.
 - **Most of Babel** — with a modern `browserslist`, `@babel/preset-env`
   transpiles almost nothing. esbuild handles the remainder faster.
-- **`gulp-load-plugins` with `pattern: ['*']`** — auto-requires *every* package
+- **`gulp-load-plugins` with `pattern: ['*']`** — auto-requires _every_ package
   in `node_modules` on load. It's slow, hides which plugin a task actually
   needs, and defeats static analysis. Replace with explicit imports.
 - **`del`** — `fs.rm(path, { recursive: true, force: true })` has been built
@@ -173,12 +173,12 @@ that need it. This is what actually fixes bug #1.
 
 ### Dependency budget
 
-| | Before | After |
-|---|---|---|
-| devDependencies | 40 | ~15 |
-| Deprecated packages | 2+ | 0 |
+|                      | Before                       | After      |
+| -------------------- | ---------------------------- | ---------- |
+| devDependencies      | 40                           | ~15        |
+| Deprecated packages  | 2+                           | 0          |
 | Native/compiled deps | node-sass, imagemin binaries | sharp only |
-| Lockfile version | 1 (npm 6) | 3 |
+| Lockfile version     | 1 (npm 6)                    | 3          |
 
 ---
 
@@ -187,7 +187,8 @@ that need it. This is what actually fixes bug #1.
 Each phase ends at a working build, so the work can stop or ship at any
 boundary.
 
-### Phase 1 — Make it install *(half a day)*
+### Phase 1 — Make it install _(half a day)_
+
 The unblocking step. Nothing else can be tested until this lands.
 
 - `node-sass` → `sass@1.103`; `gulp-sass@4` → `@6`, injecting the compiler:
@@ -203,7 +204,7 @@ The unblocking step. Nothing else can be tested until this lands.
 > 1. `"type": "module"` moved to Phase 2. Setting it here would make Gulp 5 load
 >    the still-CommonJS `gulpfile.js` as ESM and fail on `require` — install
 >    would pass while the build broke. It belongs with the ESM conversion.
-> 2. The `gulp-load-plugins` change moved *into* this phase. Declaring
+> 2. The `gulp-load-plugins` change moved _into_ this phase. Declaring
 >    `postcss` and `autoprefixer` correctly (bug #3) collides with
 >    `pattern: ['*']`, which namespaces all of `node_modules` and throws
 >    `Could not define the property "postcss"`. Restoring the default
@@ -215,7 +216,8 @@ The unblocking step. Nothing else can be tested until this lands.
 > so the options are `style` and `loadPaths` — not node-sass's `outputStyle`
 > and `includePaths`.
 
-### Phase 2 — ESM + bug fixes *(one day)*
+### Phase 2 — ESM + bug fixes _(one day)_
+
 Do these together: the strict-mode switch surfaces bug #6, and the ESM upgrades
 of `critical`/`imagemin` depend on it.
 
@@ -230,7 +232,7 @@ of `critical`/`imagemin` depend on it.
 visibly injects in the browser.
 
 > **Executed 2026-08-26.** Exit test met: `[Browsersync] 2 files changed
-> (main.css, main.css.map)` on a live `.scss` edit — a line that could not
+(main.css, main.css.map)` on a live `.scss` edit — a line that could not
 > appear before, since the stream targeted an uninitialised instance.
 >
 > Three things this phase surfaced that the plan did not anticipate:
@@ -257,7 +259,8 @@ visibly injects in the browser.
 > their `.js` extensions rather than moving to `.mjs`; `"type": "module"`
 > makes them ESM already, and Phase 4 renames these files anyway.
 
-### Phase 3 — Drop the legacy layer *(half a day)*
+### Phase 3 — Drop the legacy layer _(half a day)_
+
 - Delete Modernizr, gulp-bless, vendor-js, gulp-watch, gulp-duration, beepbeep,
   gulp-notify tasks and deps.
 - `browserslist` → `["defaults", "not dead"]`.
@@ -296,7 +299,8 @@ install time and `node_modules` size both drop measurably.
 > Gulp 5 even for a single file, reproducible with no project code. Worth
 > revisiting in Phase 4.
 
-### Phase 4 — Modern pipeline *(one to two days)*
+### Phase 4 — Modern pipeline _(one to two days)_
+
 - `scripts.mjs` on esbuild; delete `concat-js.js`.
 - `images.mjs` on sharp, emitting WebP/AVIF.
 - `critical@8`.
@@ -306,7 +310,36 @@ install time and `node_modules` size both drop measurably.
 **Exit test:** production build produces minified, sourcemapped CSS/JS and
 optimised images; `npm run lint` passes clean.
 
-### Phase 5 — Make it a real starter *(half a day)*
+> **Executed 2026-08-26.** devDependencies 22 -> 19. `critical@8` already
+> landed in Phase 3.
+>
+> esbuild bundles two ES modules into one minified file, tree-shakes an unused
+> export away, and preserves modern syntax (private fields, `?.`, `**`).
+> Targets come from `browserslist` in `package.json` via
+> `browserslist-to-esbuild`, so browser support has one source of truth.
+> `gulp-babel`, `@babel/core`, `@babel/preset-env` and `gulp-concat` are gone.
+>
+> sharp took the test PNG from 2476 to 838 bytes and emitted WebP (294 b) and
+> AVIF (308 b) siblings. The task runs on plain promises rather than a gulp
+> stream, which sidesteps the fixed ~500ms `gulp.src -> gulp.dest` cost noted
+> in Phase 3 -- the whole image task now runs in ~170ms.
+>
+> stylelint 17 runs through its own API rather than a postcss pipeline, with
+> rules in `.stylelintrc.json` extending `stylelint-config-standard-scss`
+> (chosen over `stylelint-config-standard` because it carries the scss custom
+> syntax). It correctly flags `color-no-invalid-hex` and fails a production
+> build while leaving watch alive. Linting now runs ahead of `sass` in the
+> styles pipeline.
+>
+> Prettier 3, `.prettierrc.json`, `.prettierignore` and `.editorconfig` added,
+> with `npm run format` / `format:check`. Applying it reformatted the two
+> markdown files as well -- cosmetic only (table padding, `*` to `_` for
+> italics), and the point of adopting a formatter is that everything conforms.
+>
+> `browser-sync` also went 2.x -> 3.x.
+
+### Phase 5 — Make it a real starter _(half a day)_
+
 This is the "relevant" half of the brief — the difference between a build
 script and something someone adopts.
 
@@ -331,12 +364,12 @@ script and something someone adopts.
 **Total: 3–4 focused days.** Phase 1 alone is half a day and removes the
 blocking failure — if only one phase ships, ship that one.
 
-| Risk | Likelihood | Mitigation |
-|---|---|---|
-| dart-sass rejects legacy syntax (`@import`, `/` division) | High — but only in *consuming* projects, not here | Document the `@use`/`math.div` migration in the README; dart-sass warnings name the exact line |
-| `critical@8` needs `node >= 22.13` | Certain | Already implied by the `engines` field; state it in the README |
-| esbuild output differs from concat order | Medium | Real `import`s make order explicit; keep the old bundle for one diff |
-| Gulp 5 stream changes (streamx, no graceful-fs patch) | Low | Custom transforms are minimal here; plugins in the target set are all Gulp 5 tested |
+| Risk                                                      | Likelihood                                        | Mitigation                                                                                     |
+| --------------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| dart-sass rejects legacy syntax (`@import`, `/` division) | High — but only in _consuming_ projects, not here | Document the `@use`/`math.div` migration in the README; dart-sass warnings name the exact line |
+| `critical@8` needs `node >= 22.13`                        | Certain                                           | Already implied by the `engines` field; state it in the README                                 |
+| esbuild output differs from concat order                  | Medium                                            | Real `import`s make order explicit; keep the old bundle for one diff                           |
+| Gulp 5 stream changes (streamx, no graceful-fs patch)     | Low                                               | Custom transforms are minimal here; plugins in the target set are all Gulp 5 tested            |
 
 **One honest caveat:** the sass migration risk lands on projects that consume
 this starter, not on the starter itself. It's worth a README section rather than

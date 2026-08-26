@@ -28,20 +28,22 @@ export function sass() {
     // shipped unprocessed CSS to production.
     const processors = [autoprefixer, ...(dev ? [] : [cssnano])];
 
-    return srcOrEmpty(path.to.sass.files, { sourcemaps: dev })
-        .pipe(debug ? gulpDebug({ title: 'SASS :: SRC' }) : noop())
-        .pipe(plumber({ errorHandler: handleError }))
-        .pipe(
-            sassCompiler({
-                // dart-sass's modern API: `style` and `loadPaths`, not
-                // node-sass's `outputStyle` and `includePaths`.
-                style: dev ? setup.dev.sassStyle : setup.prod.sassStyle,
-                loadPaths: [path.to.sass.source],
-            }).on('error', sassCompiler.logError)
-        )
-        .pipe(gulpPostcss(processors))
-        .pipe(debug ? gulpDebug({ title: 'SASS :: OUTPUT' }) : noop())
-        // `sourcemaps` must be set on dest too, or gulp silently drops them.
-        .pipe(gulp.dest(path.to.dist.css, { sourcemaps: dev ? '.' : false }))
-        .pipe(browserSync.stream());
+    return (
+        srcOrEmpty(path.to.sass.files, { sourcemaps: dev })
+            .pipe(debug ? gulpDebug({ title: 'SASS :: SRC' }) : noop())
+            .pipe(plumber({ errorHandler: handleError }))
+            .pipe(
+                sassCompiler({
+                    // dart-sass's modern API: `style` and `loadPaths`, not
+                    // node-sass's `outputStyle` and `includePaths`.
+                    style: dev ? setup.dev.sassStyle : setup.prod.sassStyle,
+                    loadPaths: [path.to.sass.source],
+                }).on('error', sassCompiler.logError),
+            )
+            .pipe(gulpPostcss(processors))
+            .pipe(debug ? gulpDebug({ title: 'SASS :: OUTPUT' }) : noop())
+            // `sourcemaps` must be set on dest too, or gulp silently drops them.
+            .pipe(gulp.dest(path.to.dist.css, { sourcemaps: dev ? '.' : false }))
+            .pipe(browserSync.stream())
+    );
 }
