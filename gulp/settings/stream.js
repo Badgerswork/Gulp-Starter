@@ -39,5 +39,13 @@ export function srcOrEmpty(globs, opts = {}) {
         return Readable.from([], { objectMode: true });
     }
 
-    return gulp.src([...live, ...negated], opts);
+    // The probe skips these, so the real glob must too -- otherwise a
+    // project-root pattern reports "no matches" while gulp.src happily reads
+    // half of node_modules.
+    const ignore = [
+        ...alwaysExclude.map((dir) => `**/${dir}/**`),
+        ...(opts.ignore ?? []),
+    ];
+
+    return gulp.src([...live, ...negated], { ...opts, ignore });
 }

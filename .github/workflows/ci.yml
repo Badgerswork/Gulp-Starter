@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      # `npm ci` is the check that matters most here: this repo was
+      # uninstallable for years because node-sass had no binary for current
+      # Node, and nothing caught it.
+      - name: Install
+        run: npm ci
+
+      - name: Lint styles
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Development build
+        run: npm run build
+
+      # Dev and production must differ in specific, checkable ways. Both of
+      # these were broken before and shipped silently: minification ran in dev
+      # and not in production, and sourcemaps were generated then discarded.
+      - name: Verify development output
+        run: |
+          test -f dist/css/main.css.map || { echo "dev build produced no CSS sourcemap"; exit 1; }
+          test -f dist/js/main.js.map   || { echo "dev build produced no JS sourcemap"; exit 1; }
+          grep -q '^  ' dist/css/main.css || { echo "dev CSS should be expanded, not minified"; exit 1; }
+          echo "Development output verified."
+
+      - name: Production build
+        run: npm run build-prod
+
+      - name: Verify production output
+        run: |
+          set -e
+
+          test -f dist/index.html
+          test -f dist/css/main.css
+          test -f dist/js/main.js
+
+          # Minified, and no sourcemaps shipped to production.
+          ! grep -q '^  ' dist/css/main.css || { echo "production CSS is not minified"; exit 1; }
+          ! ls dist/css/*.map dist/js/*.map 2>/dev/null | grep -q . \
+            || { echo "production build leaked sourcemaps"; exit 1; }
+
+          # esbuild actually bundled: a symbol from an imported module is
+          # present in the entry output.
+          grep -q 'Intl.DateTimeFormat' dist/js/main.js \
+            || { echo "bundle is missing imported module code"; exit 1; }
+
+          # sharp emitted modern formats alongside the original.
+          test -f dist/images/sample.webp
+          test -f dist/images/sample.avif
+
+          # Server files copied to the site root.
+          test -f dist/robots.txt
+
+          # Critical CSS inlined above-the-fold rules and deferred the rest.
+          grep -q '<style>' dist/index.html \
+            || { echo "critical CSS was not inlined"; exit 1; }
+          grep -q "onload=\"this.media='all'\"" dist/index.html \
+            || { echo "stylesheet was not deferred"; exit 1; }
+
+          echo "Production output verified."
+
+      # The build was intermittently racy: gulp.dest scandirs the destination
+      # tree, so a clean task deleting a subdirectory raced against another
+      # branch writing to it. That reproduced in roughly half of runs and no
+      # single-run check would have caught it.
+      - name: Repeat build (race check)
+        run: |
+          set -e
+          for i in 1 2 3 4 5; do
+            npm run build --silent > /dev/null
+          done
+          echo "5 consecutive builds completed."

@@ -357,6 +357,51 @@ script and something someone adopts.
 
 **Exit test:** a clean clone builds and serves a page in under two minutes.
 
+> **Executed 2026-08-26.** Exit test met with room to spare: from a tracked-files-
+> only copy, `npm ci` took 7s and `npm start` was serving in 3s.
+>
+> Sources moved to `src/`, as the target architecture specified. `paths.js` now
+> reads from `src/` and writes to `dist/`, and the dead `templates`, `includes`,
+> `svg`, `css` and `nodeModules` path entries are gone. The HTML globstar is
+> cheap again now that it is scoped to `src/`.
+>
+> Verified from a clean clone: `npm ci`, `lint`, `format:check`, `build` and
+> `build-prod` all exit 0; `/`, `/css/main.css`, `/js/main.js` and
+> `/images/sample.webp` all return 200; a token edit recompiles and reports
+> `[Browsersync] 2 files changed`.
+>
+> The starter sources are deliberately not placeholders -- they exercise every
+> pipeline: a sass partial reached via `@use`, an ES module reached via
+> `import`, and a real PNG that produces WebP and AVIF siblings.
+>
+> One correction: the starter's own stylesheet failed `npm run lint` on first
+> write (`scss/dollar-variable-empty-line-before`). Fixed. A starter that does
+> not pass its own lint step is worse than no lint step.
+>
+> CI runs the whole chain on Node 22 and 24, including asserting that critical
+> CSS actually inlined -- `npm ci` is the check that matters most, since this
+> repo sat uninstallable for years with nothing to catch it. Dependabot is
+> grouped by ecosystem so it opens one PR per group rather than one per package.
+> `LICENSE` (ISC) added; package renamed to `gulp-starter`.
+>
+> **Tests added after review.** `srcOrEmpty` is the only genuinely hand-written
+> logic in the build, and it had already shipped one bug (all-or-nothing
+> pattern filtering). It now has 8 unit tests on Node's built-in runner, so no
+> new dependency. Writing them found a second bug: the existence probe skipped
+> `node_modules` but the real `gulp.src` call did not, so a project-root
+> pattern would report no matches while gulp read half of `node_modules`.
+>
+> CI assertions were also strengthened from "the files exist" to checks that
+> would have caught the actual defects in this project's history -- dev emits
+> sourcemaps and expanded CSS, production emits minified CSS with no
+> sourcemaps, the bundle contains code from an imported module, sharp emitted
+> WebP and AVIF, and critical CSS both inlined and deferred. The build also
+> runs five times, because the `gulp.dest` race reproduced in only about half
+> of runs and no single-run check could catch it.
+>
+> Not added: unit tests for the task functions. They would assert that
+> dart-sass and sharp work, which their own suites already cover.
+
 ---
 
 ## 5. Risk and effort
