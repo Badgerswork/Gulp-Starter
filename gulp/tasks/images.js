@@ -1,29 +1,72 @@
 // === IMAGES
 // ============================================================================
-// One pass: read from images/, optimise, write to dist/images.
+// sharp replaces the imagemin chain: actively maintained, much faster, and it
+// emits modern formats rather than only shrinking the original. Each raster
+// source produces an optimised original plus WebP and AVIF siblings, so
+// markup can offer them through <picture>.
 //
-// This previously copied images into dist and then re-read dist/images to
-// minify them in place (and never wrote the result back, so nothing was
-// actually optimised). That second glob walked dist/ while the clean tasks
-// were deleting from it, which raced and failed the build intermittently.
+// This runs on plain promises rather than a gulp stream, which also avoids the
+// fixed ~500ms cost gulp.src -> gulp.dest carries per task.
 
-import gulp from 'gulp';
-import { srcOrEmpty } from '../settings/stream.js';
-import plumber from 'gulp-plumber';
-import gulpDebug from 'gulp-debug';
-import noop from 'gulp-noop';
-import imagemin from 'gulp-imagemin';
-import pngquant from 'imagemin-pngquant';
+import { globSync } from 'node:fs';
+import { mkdir, copyFile } from 'node:fs/promises';
+import { dirname, extname, join, relative } from 'node:path';
+
+import sharp from 'sharp';
 
 import path from '../settings/paths.js';
-import { handleError } from '../settings/errors.js';
 import { debug } from '../settings/env.js';
 
-export function images() {
-    return srcOrEmpty(path.to.img.files, { encoding: false })
-        .pipe(plumber({ errorHandler: handleError }))
-        .pipe(debug ? gulpDebug({ title: 'IMAGES :: SRC' }) : noop())
-        .pipe(imagemin({ verbose: false, use: [pngquant()] }))
-        .pipe(debug ? gulpDebug({ title: 'IMAGES :: OUT' }) : noop())
-        .pipe(gulp.dest(path.to.dist.img));
+const RASTER = new Set(['.jpg', '.jpeg', '.png']);
+const PASSTHROUGH = new Set(['.svg', '.gif', '.ico', '.webp', '.avif']);
+
+async function convert(file) {
+    const rel = relative(path.to.img.source, file);
+    const target = join(path.to.dist.img, rel);
+    const ext = extname(file).toLowerCase();
+
+    await mkdir(dirname(target), { recursive: true });
+
+    // sharp has no advantage over a copy for vectors and animations.
+    if (PASSTHROUGH.has(ext)) {
+        await copyFile(file, target);
+        return [rel];
+    }
+
+    if (!RASTER.has(ext)) {
+        return [];
+    }
+
+    const image = sharp(file);
+    const stripExt = target.slice(0, -ext.length);
+
+    await Promise.all([
+        ext === '.png'
+            ? image.clone().png({ compressionLevel: 9 }).toFile(target)
+            : image.clone().jpeg({ quality: 80, mozjpeg: true }).toFile(target),
+        image.clone().webp({ quality: 80 }).toFile(`${stripExt}.webp`),
+        image.clone().avif({ quality: 55 }).toFile(`${stripExt}.avif`),
+    ]);
+
+    return [
+        rel,
+        `${rel.slice(0, -ext.length)}.webp`,
+        `${rel.slice(0, -ext.length)}.avif`,
+    ];
+}
+
+export async function images() {
+    const files = globSync(path.to.img.files, {
+        exclude: (entry) => entry === 'node_modules' || entry === '.git',
+    });
+
+    if (files.length === 0) {
+        return;
+    }
+
+    const written = (await Promise.all(files.map(convert))).flat();
+
+    if (debug) {
+        written.forEach((file) => console.log(`IMAGES :: ${file}`));
+    }
 }

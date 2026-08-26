@@ -21,7 +21,9 @@ const path = {
 
         js: {
             source: _baseDir + '/js',
-            files: _baseDir + '/js/**/**.**',
+            files: _baseDir + '/js/**/*.js',
+            // Bundling needs a single entry; imports reach everything else.
+            entry: _baseDir + '/js/main.js',
         },
 
         img: {

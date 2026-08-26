@@ -8,11 +8,14 @@
     "node": ">=22.11"
   },
   "scripts": {
-    "start": "npm i && gulp watch --dev",
+    "start": "gulp watch --dev",
+    "dev": "gulp watch --dev",
+    "build": "gulp build --dev",
     "build-prod": "gulp dist",
-    "build": "gulp --dev",
-    "watch": "gulp watch --dev",
-    "release": "npm i && gulp dist"
+    "release": "gulp dist",
+    "lint": "stylelint \"styles/**/*.scss\" --allow-empty-input",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "repository": {
     "type": "git",
@@ -26,28 +29,25 @@
   },
   "homepage": "https://github.com/Badgerswork/Gulp-Starter#readme",
   "devDependencies": {
-    "@babel/core": "^7.4.5",
-    "@babel/preset-env": "^7.4.5",
     "autoprefixer": "^10.5.4",
-    "browser-sync": "^2.26.7",
+    "browser-sync": "^3.0.4",
+    "browserslist": "^4.28.8",
+    "browserslist-to-esbuild": "^2.1.1",
     "critical": "^8.0.0",
     "cssnano": "^8.0.9",
+    "esbuild": "^0.28.2",
     "gulp": "^5.0.1",
-    "gulp-babel": "^8.0.0",
-    "gulp-concat": "^2.6.1",
     "gulp-debug": "^4.0.0",
-    "gulp-imagemin": "^7.1.0",
     "gulp-noop": "^1.0.0",
     "gulp-plumber": "^1.2.1",
     "gulp-postcss": "^10.0.0",
     "gulp-sass": "^6.0.1",
-    "imagemin-pngquant": "^8.0.0",
     "postcss": "^8.5.26",
-    "postcss-reporter": "^7.1.0",
-    "postcss-scss": "^4.0.9",
+    "prettier": "^3.9.6",
     "sass": "^1.103.1",
-    "stylelint": "^13.5.0",
-    "stylelint-config-standard": "^20.0.0"
+    "sharp": "^0.35.4",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard-scss": "^17.0.0"
   },
   "browserslist": [
     "defaults",
