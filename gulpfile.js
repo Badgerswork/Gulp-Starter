@@ -1,6 +1,6 @@
 ﻿const gulp = require('gulp'),
     plugins = require('gulp-load-plugins')({
-        pattern: ['*'],
+        pattern: ['gulp-*', 'gulp.*'],
     }),
     path = require('./gulp/settings/paths'),
     browsersync = require('browser-sync').create();
