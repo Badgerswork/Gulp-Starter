@@ -42,12 +42,12 @@
   },
   "homepage": "https://github.com/Badgerswork/Gulp-Starter#readme",
   "devDependencies": {
-    "autoprefixer": "^10.5.4",
+    "autoprefixer": "^10.5.5",
     "browser-sync": "^3.0.4",
     "browserslist": "^4.28.8",
     "browserslist-to-esbuild": "^2.1.1",
     "critical": "^8.0.0",
-    "cssnano": "^9.0.1",
+    "cssnano": "^9.0.3",
     "esbuild": "^0.28.2",
     "gulp": "^5.0.1",
     "gulp-debug": "^5.0.1",
@@ -57,7 +57,7 @@
     "gulp-sass": "^6.0.1",
     "postcss": "^8.5.26",
     "prettier": "^3.9.6",
-    "sass": "^1.103.1",
+    "sass": "^1.104.0",
     "sharp": "^0.35.4",
     "stylelint": "^17.14.1",
     "stylelint-config-standard-scss": "^17.0.0"
