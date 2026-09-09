@@ -44,7 +44,7 @@
   "devDependencies": {
     "autoprefixer": "^10.5.4",
     "browser-sync": "^3.0.4",
-    "browserslist": "^4.28.8",
+    "browserslist": "^4.28.9",
     "browserslist-to-esbuild": "^2.1.1",
     "critical": "^8.0.0",
     "cssnano": "^9.0.1",
@@ -59,7 +59,7 @@
     "prettier": "^3.9.6",
     "sass": "^1.103.1",
     "sharp": "^0.35.4",
-    "stylelint": "^17.14.1",
+    "stylelint": "^17.15.0",
     "stylelint-config-standard-scss": "^17.0.0"
   },
   "browserslist": [
